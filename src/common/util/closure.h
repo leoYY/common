@@ -5,6 +5,8 @@
 #ifndef _CLOSURE_H_
 #define _CLOSURE_H_
 
+#include "common/util/noncopyable.h"
+
 namespace common {
 namespace util {
     
@@ -26,7 +28,7 @@ public:
     FunctionClosure0(FunctionType func, bool self_del)
         : _function(func), _self_del(self_del) {}
 
-    ~FunctionClosure0(); 
+    ~FunctionClosure0() {}
 
     void Run() {
         bool need_delete = _self_del; 
@@ -49,11 +51,11 @@ public:
     FunctionClosure1(FunctionType func, Arg1 arg, bool self_del)
         : _function(func), _arg(arg), _self_del(self_del) {}
 
-    ~FunctionClosure1();
+    ~FunctionClosure1() {}
 
     void Run() {
         bool need_del = _self_del;
-        _function(arg);
+        _function(_arg);
         if (need_del) {
             delete this; 
         }
@@ -73,7 +75,7 @@ public:
     FunctionClosure2(FunctionType func, Arg1 arg1, Arg2 arg2, bool self_del)
         : _function(func), _arg1(arg1), _arg2(arg2), _self_del(self_del) {}
 
-    ~FunctionClosure2();
+    ~FunctionClosure2() {}
 
     void Run() {
         bool need_del = _self_del; 
@@ -99,7 +101,7 @@ public:
     FunctionClosure3(FunctionType func, Arg1 arg1, Arg2 arg2, Arg3 arg3, bool self_del)
         : _function(func), _arg1(arg1), _arg2(arg2), _arg3(arg3), _self_del(self_del) {}
 
-    ~FunctionClosure3();
+    ~FunctionClosure3() {}
 
     void Run() {
         bool need_del = _self_del; 
@@ -127,7 +129,7 @@ public:
     MethodClosure0(Class* obj, MethodType method, bool self_del)
         : _object(obj), _method(method), _self_del(self_del) {}
 
-    ~MethodClosure0(); 
+    ~MethodClosure0() {}
 
     void Run() {
         if (_object != NULL) {
@@ -153,7 +155,7 @@ public:
     MethodClosure1(Class* obj, MethodType method, Arg1 arg1, bool self_del)
         : _object(obj), _method(method), _arg1(arg1), _self_del(self_del) {}
 
-    ~MethodClosure1();
+    ~MethodClosure1() {}
 
     void Run() {
         bool need_del = _self_del; 
@@ -178,7 +180,7 @@ public:
     MethodClosure2(Class* obj, MethodType method, Arg1 arg1, Arg2 arg2, bool self_del)
         : _object(obj), _method(method), _arg1(arg1), _arg2(arg2), _self_del(self_del) {}
 
-    ~MethodClosure2(); 
+    ~MethodClosure2() {}
 
     void Run() {
         bool need_del = _self_del; 
@@ -204,7 +206,7 @@ public:
     MethodClosure3(Class* obj, MethodType method, Arg1 arg1, Arg2 arg2, Arg3 arg3, bool self_del)
         : _object(obj), _method(method), _arg1(arg1), _arg2(arg2), _arg3(arg3), _self_del(self_del) {}
      
-    ~MethodClosure3();
+    ~MethodClosure3() {}
 
     void Run() {
         bool need_del = _self_del; 
@@ -233,72 +235,72 @@ inline Closure* NewPermentClosure(void(*func)()) {
 
 template <typename Arg1>
 inline Closure* NewClosure(void(*func)(Arg1), Arg1 arg) {
-    return new FunctionClosure1(func, arg, true);
+    return new FunctionClosure1<Arg1>(func, arg, true);
 }
 
 template <typename Arg1>
 inline Closure* NewPermentClosure(void(*func)(Arg1), Arg1 arg) {
-    return new FunctionClosure1(func, arg, false);
+    return new FunctionClosure1<Arg1>(func, arg, false);
 }
 
 template <typename Arg1, typename Arg2>
 inline Closure* NewClosure(void (*func) (Arg1, Arg2), Arg1 arg1, Arg2 arg2) {
-    return new FunctionClosure2(func, arg1, arg2, true);
+    return new FunctionClosure2<Arg1, Arg2>(func, arg1, arg2, true);
 }
 
 template <typename Arg1, typename Arg2>
 inline Closure* NewPermentClosure(void (*func) (Arg1, Arg2), Arg1 arg1, Arg2 arg2) {
-    return new FunctionClosure2(func, arg1, arg2, false);
+    return new FunctionClosure2<Arg1, Arg2>(func, arg1, arg2, false);
 }
 
 template <typename Arg1, typename Arg2, typename Arg3>
 inline Closure* NewClosure(void (*func) (Arg1, Arg2, Arg3), Arg1 arg1, Arg2 arg2, Arg3 arg3) {
-    return new FunctionClosure3(func, arg1, arg2, arg3, true);
+    return new FunctionClosure3<Arg1, Arg2, Arg3>(func, arg1, arg2, arg3, true);
 }
 
 template <typename Arg1, typename Arg2, typename Arg3>
 inline Closure* NewPermentClosure(void (*func) (Arg1, Arg2, Arg3), Arg1 arg1, Arg2 arg2, Arg3 arg3) {
-    return new FunctionClosure3(func, arg1, arg2, arg3, false);
+    return new FunctionClosure3<Arg1, Arg2, Arg3>(func, arg1, arg2, arg3, false);
 }
 
 template <typename Class>
 inline Closure* NewClosure(Class* object, void (Class::*method)()) {
-    return new MethodClosure0(object, method, true);
+    return new MethodClosure0<Class>(object, method, true);
 }
 
 template <typename Class>
-inline Closure* NewClosure(Class* object, void (Class::*method)()) {
-    return new MethodClosure0(object, method, false);
+inline Closure* NewPermentClosure(Class* object, void (Class::*method)()) {
+    return new MethodClosure0<Class>(object, method, false);
 }
 
 template <typename Class, typename Arg1>
 inline Closure* NewClosure(Class* object, void (Class::*method)(Arg1), Arg1 arg1) {
-    return new MethodClosure1(object, method, arg1, true);
+    return new MethodClosure1<Class, Arg1>(object, method, arg1, true);
 }
 
 template <typename Class, typename Arg1>
 inline Closure* NewPermentClosure(Class* object, void (Class::*method)(Arg1), Arg1 arg1) {
-    return new MethodClosure1(object, method, arg1, false);
+    return new MethodClosure1<Class, Arg1>(object, method, arg1, false);
 }
 
 template <typename Class, typename Arg1, typename Arg2>
 inline Closure* NewClosure(Class* object, void (Class::*method)(Arg1, Arg2), Arg1 arg1, Arg2 arg2) {
-    return new MethodClosure2(object, method, arg1, arg2, true);
+    return new MethodClosure2<Class, Arg1, Arg2>(object, method, arg1, arg2, true);
 }
 
 template <typename Class, typename Arg1, typename Arg2>
 inline Closure* NewPermentClosure(Class* object, void (Class::*method)(Arg1, Arg2), Arg1 arg1, Arg2 arg2) {
-    return new MethodClosure2(object, method, arg1, arg2, false);
+    return new MethodClosure2<Class, Arg1, Arg2>(object, method, arg1, arg2, false);
 }
 
 template <typename Class, typename Arg1, typename Arg2, typename Arg3>
 inline Closure* NewClosure(Class* object, void (Class::*method)(Arg1, Arg2, Arg3), Arg1 arg1, Arg2 arg2, Arg3 arg3) {
-    return new MethodClosure3(object, method, arg1, arg2, arg3, true);
+    return new MethodClosure3<Class, Arg1, Arg2, Arg3>(object, method, arg1, arg2, arg3, true);
 }
 
 template <typename Class, typename Arg1, typename Arg2, typename Arg3>
 inline Closure* NewPermentClosure(Class* object, void (Class::*method)(Arg1, Arg2, Arg3), Arg1 arg1, Arg2 arg2, Arg3 arg3) {
-    return new MethodClosure3(object, method, arg1, arg2, arg3, false);
+    return new MethodClosure3<Class, Arg1, Arg2, Arg3>(object, method, arg1, arg2, arg3, false);
 }
 
 }   // ending namespace util
