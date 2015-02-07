@@ -18,6 +18,7 @@ TimeDeubuger::TimeDeubuger(const char* fmt, ...)
     int len = snprintf(info_buffer, MAX_INFO_LEN - 1, fmt, args); 
     va_end(args);
     _log_info.assign(info_buffer);
+    gettimeofday(&_start_tm, NULL);
 }
 
 }   // ending namespace util
