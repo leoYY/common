@@ -33,6 +33,8 @@ public:
         gettimeofday(&_start_tm, NULL);            
     }
 
+    TimeDeubuger(const char* fmt, ...);
+
     TimerDebuger()
     {
         gettimeofday(&_start_tm, NULL); 
@@ -47,13 +49,22 @@ public:
         return last_time;
     }
 
+    unsigned long LastTimeUS() {
+        struct timeval time; 
+        gettimeofday(&time, NULL);
+        unsigned long last_time = 
+            (time.tv_sec - _start_tm.tv_sec) * 1000000 +
+            (time.tv_usec - _start_tm.tv_usec) ;
+        return last_time;
+    }
+
     ~TimerDebuger()
     {
         gettimeofday(&_end_tm, NULL); 
         long last_time = 
-            (_end_tm.tv_sec - _start_tm.tv_sec ) * 1000 +
-            (_end_tm.tv_usec - _start_tm.tv_usec) / 1000;
-        fprintf(stderr, "%s %lums", log_info.c_str(), last_time);
+            (_end_tm.tv_sec - _start_tm.tv_sec ) * 1000000 +
+            (_end_tm.tv_usec - _start_tm.tv_usec) ;
+        fprintf(stderr, "%s %luus", log_info.c_str(), last_time);
     }
 private:
     std::string _log_info;
