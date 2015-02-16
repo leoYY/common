@@ -13,15 +13,18 @@
  * @brief 
  *  
  **/
-#ifndef PS_SPI_THREAD/THREAD_POOL_H
-#define PS_SPI_THREAD/THREAD_POOL_H
+#ifndef _THREAD_THREAD_POOL_H
+#define _THREAD_THREAD_POOL_H
 
 #include <sys/time.h>
 #include <pthread.h>
 #include <vector>
-#include "thread/mutex.h"
-#include "util/noncopyable.h"
-#include "util/closure.h"
+#include <deque>
+#include "common/thread/mutex.h"
+#include "common/thread/condition.h"
+#include "common/util/noncopyable.h"
+#include "common/util/closure.h"
+#include "common/util/log.h"
 
 namespace common {
 namespace thread {
@@ -50,6 +53,7 @@ public:
         MutexScoped lock(_mutex);
         _task_queue.push_back(func);
         _pending_tasks ++;
+        TRACE_LOG("%d add task count[%d]\n", pthread_self(), _pending_tasks);
         _cond.Signal();
     }
 
@@ -57,6 +61,7 @@ public:
         MutexScoped lock(_mutex); 
         _task_queue.push_front(func);
         _pending_tasks ++;
+        TRACE_LOG("%d add task count[%d]\n", pthread_self(), _pending_tasks);
         _cond.Signal();
     }
     

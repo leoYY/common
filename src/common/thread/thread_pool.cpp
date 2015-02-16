@@ -14,7 +14,10 @@
  *  
  **/
 
-#include "thread/thread_pool.h"
+#include <errno.h>
+
+#include "common/thread/thread_pool.h"
+#include "common/util/log.h"
 
 namespace common {
 namespace thread {
@@ -31,6 +34,7 @@ void ThreadPool::ThreadProc() {
             if (_stop) {
                 break; 
             }
+
             callback = _task_queue.front();
             _task_queue.pop_front();
             _pending_tasks --;
@@ -44,7 +48,7 @@ void ThreadPool::Stop(bool wait) {
     if (wait) {
         while (_pending_tasks > 0) {
             usleep(1000); 
-        } 
+        }
     }
 
     {
@@ -58,24 +62,27 @@ void ThreadPool::Stop(bool wait) {
         pthread_t& pid = *it;
         pthread_join(pid, NULL); 
     }
-    //FIXME when wait is false, Closure should be delete by threadpool?
-    while (_pending_tasks != 0) {
+    _pids.clear();
+
+    while (_task_queue.size() > 0) {
         Closure* callback = _task_queue.front(); 
         delete callback;
         _task_queue.pop_front();
-        _pending_tasks --;
     }
     return;
 }
 
-void ThreadPool::Start() {
+bool ThreadPool::Start() {
     _stop = false;
     for (int i = 0; i < _work_num; i++) {
         pthread_t pid; 
-        pthread_create(&pid, NULL, ThreadPool::ThreadWrapper, this);
+        if (0 != pthread_create(&pid, NULL, ThreadPool::ThreadWrapper, this)) {
+            FATAL_LOG("pthread create failed [%d] [%s]\n", errno, strerror(errno));
+            return false;
+        }
         _pids.push_back(pid);
     }
-    return;
+    return true;
 }
 
 }   // ending namespace thread

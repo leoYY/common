@@ -13,11 +13,14 @@
  * @brief 
  *  
  **/
-#ifndef PS_SPI_THREAD/MUTEX_H
-#define PS_SPI_THREAD/MUTEX_H
+#ifndef _THREAD_MUTEX_H
+#define _THREAD_MUTEX_H
 
 #include <pthread.h>
-#include "util/noncopyable.h"
+#include <errno.h>
+#include <assert.h>
+#include "common/util/noncopyable.h"
+#include "common/util/log.h"
 
 namespace common {
 namespace thread {
@@ -25,15 +28,40 @@ namespace thread {
 class Mutex : public common::util::noncopyable {
 public:
     Mutex()  {
-        pthread_mutex_init(&_mutex, NULL);
+        int ret = pthread_mutex_init(&_mutex, NULL);
+        if (ret != 0) {
+            FATAL_LOG(
+                    "%d pthread mutex init failed errno[%d] [%s]\n", 
+                    pthread_self(), 
+                    errno, 
+                    strerror(errno));     
+            assert(ret == 0);
+        }
     }
 
     ~Mutex() {
-        pthread_mutex_destroy(&_mutex); 
+        if (0 != pthread_mutex_destroy(&_mutex)) {
+            FATAL_LOG(
+                    "%d pthread mutex destroy failed errno[%d] [%s]\n", 
+                    pthread_self(), 
+                    errno, 
+                    strerror(errno)); 
+        }
+
     }
     
     void Lock() {
+#ifdef UTTEST
+        {
+            common::util::TimerDebuger timer(
+                    "thread [%x] mutex [%p] costs ", 
+                    pthread_self(), 
+                    &_mutex);
+#endif
         pthread_mutex_lock(&_mutex); 
+#ifdef UTTEST
+        }
+#endif 
     }
 
     void UnLock() {
@@ -57,7 +85,6 @@ public:
         _mutex.UnLock(); 
     }
 private:
-    MutexScoped() {}
     Mutex& _mutex;
 };
 

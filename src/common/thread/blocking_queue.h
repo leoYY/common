@@ -13,13 +13,13 @@
  * @brief 
  *  
  **/
-#ifndef PS_SPI_BLOCKING_QUEUE_H
-#define PS_SPI_BLOCKING_QUEUE_H
+#ifndef _BLOCKING_QUEUE_H
+#define _BLOCKING_QUEUE_H
 
 #include <deque>
-#include "util/noncopyable.h"
-#include "thread/mutex.h"
-#include "thread/condition.h"
+#include "common/util/noncopyable.h"
+#include "common/thread/mutex.h"
+#include "common/thread/condition.h"
 
 namespace common {
 namespace thread {

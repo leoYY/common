@@ -19,7 +19,7 @@
 #include <sys/time.h>
 #include <string>
 
-#include "noncopyable.h"
+#include "common/util/noncopyable.h"
 
 namespace common {
 namespace util {
@@ -33,7 +33,7 @@ public:
         gettimeofday(&_start_tm, NULL);            
     }
 
-    TimeDeubuger(const char* fmt, ...);
+    TimerDebuger(char const* fmt, ...);
 
     TimerDebuger()
     {
@@ -64,9 +64,13 @@ public:
         long last_time = 
             (_end_tm.tv_sec - _start_tm.tv_sec ) * 1000000 +
             (_end_tm.tv_usec - _start_tm.tv_usec) ;
-        fprintf(stderr, "%s %luus", log_info.c_str(), last_time);
+        fprintf(stderr, "%s %luus", _log_info.c_str(), last_time);
     }
+#ifdef UTTEST
+public:
+#else
 private:
+#endif
     std::string _log_info;
     struct timeval _start_tm;
     struct timeval _end_tm;

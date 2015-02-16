@@ -13,22 +13,22 @@
  * @brief 
  *  
  **/
-#ifndef PS_SPI_THREAD/CONDITION_H
-#define PS_SPI_THREAD/CONDITION_H
+#ifndef _THREAD_CONDITION_H
+#define _THREAD_CONDITION_H
 
 #include <pthread.h>
 #include <sys/time.h>
 #include <errno.h>
-#include "thread/mutex.h"
-#include "util/noncopyable.h"
+#include "common/thread/mutex.h"
+#include "common/util/noncopyable.h"
 
 namespace common {
 namespace thread {
 
 class Condition: public common::util::noncopyable {
 public:
-    explicit Condtiion(Mutex& mutex): _mutex(mutex) {
-        pthread_cond_init(&_cond, _mutex.PthreadMutex(), NULL);
+    explicit Condition(Mutex& mutex): _mutex(mutex) {
+        pthread_cond_init(&_cond, NULL);
     }
 
     ~Condition() {
