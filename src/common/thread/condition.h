@@ -19,8 +19,10 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <string.h>
 #include "common/thread/mutex.h"
 #include "common/util/noncopyable.h"
+#include "common/util/time_debuger.h"
 
 namespace common {
 namespace thread {
@@ -28,18 +30,54 @@ namespace thread {
 class Condition: public common::util::noncopyable {
 public:
     explicit Condition(Mutex& mutex): _mutex(mutex) {
-        pthread_cond_init(&_cond, NULL);
+        if (0 != pthread_cond_init(&_cond, NULL)) {
+            FATAL_LOG(
+                    "condition[%p] init failed err[%d] [%s]", 
+                    &_cond, 
+                    errno, 
+                    strerror(errno)); 
+            abort();
+        }
     }
 
     ~Condition() {
-        pthread_cond_destroy(&_cond);
+        if (0 != pthread_cond_destroy(&_cond)) {
+            FATAL_LOG(
+                    "condition[%p] destroy failed err[%d] [%s]", 
+                    &_cond,
+                    errno,
+                    strerror(errno)); 
+        }
     }
 
     void Wait() {
-        pthread_cond_wait(&_cond, _mutex.PthreadMutex()); 
+#ifdef UTTEST
+        common::util::TimerDebuger timer(
+                "thread[%x] condition[%p] at mutex[%p] wait costs ",
+                pthread_self(),
+                &_cond,
+                _mutex.PthreadMutex()); 
+#endif
+        int err = pthread_cond_wait(&_cond, _mutex.PthreadMutex()); 
+        if (err != 0) {
+            WARNING_LOG(
+                    "thread [%x] condition[%p] wait failed err[%d] [%s]",
+                    pthread_self(),
+                    &_cond,
+                    errno,
+                    strerror(errno));
+            // condition wait failed may not any matter, user will check conditon value
+        }
     }
 
     bool WaitForTime(unsigned long ms) {
+#ifdef UTTEST
+        common::util::TimerDebuger timer(
+                "thread[%x] condition[%p] at mutex[%p] wait costs ",
+                pthread_self(),
+                &_cond,
+                _mutex.PthreadMutex());
+#endif
         struct timespec now; 
         clock_gettime(CLOCK_REALTIME, &now);
         
@@ -59,11 +97,29 @@ public:
     }
     
     void Signal() {
-        pthread_cond_signal(&_cond);
+        int err = pthread_cond_signal(&_cond);
+        if (err != 0) {
+            //@NOTE how to trigger signal failed? 
+            FATAL_LOG(
+                    "thread[%x] condition[%p] signal failed err[%d] [%s]",
+                    pthread_self(),
+                    &_cond,
+                    errno,
+                    strerror(errno));
+        }
     }
 
     void SignalAll() {
-        pthread_cond_broadcast(&_cond); 
+        int err = pthread_cond_broadcast(&_cond); 
+        if (err != 0) {
+            //@NOTE how to trigger signal failed? 
+            FATAL_LOG(
+                    "thread[%x] condition[%p] signal failed err[%d] [%s]",
+                    pthread_self(),
+                    &_cond,
+                    errno,
+                    strerror(errno));
+        }
     }
 private:
     pthread_cond_t _cond;

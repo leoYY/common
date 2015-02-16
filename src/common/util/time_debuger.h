@@ -64,7 +64,7 @@ public:
         long last_time = 
             (_end_tm.tv_sec - _start_tm.tv_sec ) * 1000000 +
             (_end_tm.tv_usec - _start_tm.tv_usec) ;
-        fprintf(stderr, "%s %luus", _log_info.c_str(), last_time);
+        fprintf(stderr, "%s %luus\n", _log_info.c_str(), last_time);
     }
 #ifdef UTTEST
 public:

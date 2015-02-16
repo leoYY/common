@@ -17,10 +17,12 @@
 #define _THREAD_MUTEX_H
 
 #include <pthread.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
 #include "common/util/noncopyable.h"
 #include "common/util/log.h"
+#include "common/util/time_debuger.h"
 
 namespace common {
 namespace thread {
@@ -54,18 +56,46 @@ public:
 #ifdef UTTEST
         {
             common::util::TimerDebuger timer(
-                    "thread [%x] mutex [%p] costs ", 
+                    "thread [%x] mutex[%p] lock costs ", 
                     pthread_self(), 
                     &_mutex);
 #endif
-        pthread_mutex_lock(&_mutex); 
+        int err = pthread_mutex_lock(&_mutex); 
+        if (err != 0) {
+            FATAL_LOG(
+                    "%x mutex[%p] lock failed err[%d] [%s]", 
+                    pthread_self(), 
+                    &_mutex, 
+                    errno, 
+                    strerror(errno)); 
+            abort();
+        } 
 #ifdef UTTEST
         }
 #endif 
     }
 
     void UnLock() {
-        pthread_mutex_unlock(&_mutex); 
+#ifdef UTTEST 
+        {
+            common::util::TimerDebuger timer(
+                    "thread [%x] mutex[%p] unlock costs ", 
+                    pthread_self(),
+                    &_mutex);
+#endif
+        int err = pthread_mutex_unlock(&_mutex); 
+        if (err != 0) {
+            FATAL_LOG(
+                    "%x mutex[%p] unlock failed err[%d] [%s]", 
+                    pthread_self(),
+                    &_mutex,
+                    errno,
+                    strerror(errno)); 
+            abort();
+        }
+#ifdef UTTEST
+        }
+#endif
     }
 
     pthread_mutex_t* PthreadMutex() {
