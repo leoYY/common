@@ -8,26 +8,38 @@ CC=gcc
 XX=g++
 
 CFLAGS=-Wall\
-    -O\
-    -g
+    -O \
+    -g \
+	-DUTTEST
 
 # include path
 INCLUDE=-I. \
 		-I../../../src/ \
-		-I../../../thirdsrc/gtest/output/include/
+		-I../../../thirdsrc/gtest/include/
 
 # lib 
 LIB=-lpthread \
 	-lgtest \
 
 # lib path 
-LIBPATH=-L../../../thirdsrc/gtest/output/lib/
+LIBPATH=-L../../../thirdsrc/gtest/lib/ \
+		-L../../../
 
-default: closure_test
+default: closure_test time_debugger_test
 
-closure_test : closure_test.cpp
-	$(XX) $(CFLAGS) $(INCLUDE) closure_test.cpp -o closure_test $(LIB) $(LIBPATH)
+%.o:%.cpp
+	$(XX) $(CFLAGS) $(INCLUDE) -c $^ -o $@
+%.o:%.c
+	$(XX) $(CFLAGS) $(INCLUDE) -c $^ -o $@
+%.o:%.cc
+	$(XX) $(CFLAGS) $(INCLUDE) -c $^ -o $@
+
+closure_test : closure_test.o
+	$(XX) $^ -o closure_test $(LIB) $(LIBPATH)
+
+time_debugger_test : time_debugger_test.o
+	$(XX) $^ -o time_debugger_test $(LIB) $(LIBPATH)
 
 .PHONY: clean
 clean:
-	@rm closure_test
+	@rm -rf *.o closure_test time_debugger_test
