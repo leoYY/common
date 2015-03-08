@@ -33,7 +33,8 @@ public:
         gettimeofday(&_start_tm, NULL);            
     }
 
-    TimerDebuger(char const* fmt, ...);
+    TimerDebuger(char const* fmt, ...)
+      __attribute__((format(printf, 2, 3)));
 
     TimerDebuger()
     {
